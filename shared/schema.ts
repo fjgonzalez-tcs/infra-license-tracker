@@ -113,6 +113,21 @@ export const usageConsumption = pgTable("sis_costs_usage_consumption", {
   updatedAt: timestamp("scuc_updated_at").defaultNow(),
 });
 
+// Budget table - scb (sis_costs_budget)
+export const budget = pgTable("sis_costs_budget", {
+  id: bigint("scb_id", { mode: "number" }).primaryKey().generatedByDefaultAsIdentity(),
+  name: varchar("scb_name", { length: 128 }).notNull(),
+  categoryId: bigint("scb_category_id", { mode: "number" }),
+  serviceId: bigint("scb_service_id", { mode: "number" }),
+  budgetType: varchar("scb_budget_type", { length: 20 }).notNull().default("monthly"), // monthly, quarterly, yearly
+  budgetAmount: decimal("scb_budget_amount", { precision: 12, scale: 2 }).notNull(),
+  budgetPeriod: varchar("scb_budget_period", { length: 7 }).notNull(), // YYYY-MM format
+  alertThreshold: integer("scb_alert_threshold").default(80), // percentage
+  isActive: boolean("scb_is_active").default(true),
+  createdAt: timestamp("scb_created_at").defaultNow(),
+  updatedAt: timestamp("scb_updated_at").defaultNow(),
+});
+
 // Relations
 export const serviceRelations = relations(service, ({ one, many }) => ({
   provider: one(provider, {
@@ -127,6 +142,7 @@ export const serviceRelations = relations(service, ({ one, many }) => ({
   licensePlans: many(licensePlan),
   usageTopups: many(usageTopup),
   usageConsumption: many(usageConsumption),
+  budgets: many(budget),
 }));
 
 export const providerRelations = relations(provider, ({ many }) => ({
@@ -135,6 +151,7 @@ export const providerRelations = relations(provider, ({ many }) => ({
 
 export const serviceCategoryRelations = relations(serviceCategory, ({ many }) => ({
   services: many(service),
+  budgets: many(budget),
 }));
 
 export const infraInvoiceRelations = relations(infraInvoice, ({ one }) => ({
@@ -162,6 +179,17 @@ export const usageConsumptionRelations = relations(usageConsumption, ({ one }) =
   service: one(service, {
     fields: [usageConsumption.serviceId],
     references: [service.id],
+  }),
+}));
+
+export const budgetRelations = relations(budget, ({ one }) => ({
+  service: one(service, {
+    fields: [budget.serviceId],
+    references: [service.id],
+  }),
+  category: one(serviceCategory, {
+    fields: [budget.categoryId],
+    references: [serviceCategory.id],
   }),
 }));
 
@@ -213,6 +241,12 @@ export const insertUsageConsumptionSchema = createInsertSchema(usageConsumption)
   updatedAt: true,
 });
 
+export const insertBudgetSchema = createInsertSchema(budget).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -237,3 +271,6 @@ export type UsageTopup = typeof usageTopup.$inferSelect;
 
 export type InsertUsageConsumption = z.infer<typeof insertUsageConsumptionSchema>;
 export type UsageConsumption = typeof usageConsumption.$inferSelect;
+
+export type InsertBudget = z.infer<typeof insertBudgetSchema>;
+export type Budget = typeof budget.$inferSelect;
