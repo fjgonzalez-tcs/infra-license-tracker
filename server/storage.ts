@@ -65,6 +65,9 @@ export interface IStorage {
   createUsageConsumption(consumption: InsertUsageConsumption): Promise<UsageConsumption>;
   getUsageBalance(serviceId: number): Promise<{ balance: number; totalPurchased: number; totalConsumed: number }>;
   getLowBalanceAlerts(thresholdPercent: number): Promise<any[]>;
+
+  // Analytics operations
+  getCostForecast(): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {

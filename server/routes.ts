@@ -306,6 +306,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Cost forecast endpoint
+  app.get('/api/cost-forecast', async (req, res) => {
+    try {
+      const forecast = await storage.getCostForecast();
+      res.json(forecast);
+    } catch (error) {
+      console.error("Error generating cost forecast:", error);
+      res.status(500).json({ message: "Failed to generate cost forecast" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

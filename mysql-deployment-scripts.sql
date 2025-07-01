@@ -1,7 +1,7 @@
 -- =====================================================
 -- CostWatch MySQL Database Schema Creation Script
 -- For Production Deployment
--- Generated: January 1, 2025
+-- Updated: July 1, 2025 with sis_costs_ prefix and mnemonic columns
 -- =====================================================
 
 -- Create database if it doesn't exist
@@ -12,7 +12,7 @@ COLLATE utf8mb4_unicode_ci;
 USE costwatch;
 
 -- =====================================================
--- User Management Tables
+-- User Management Tables (Optional - Authentication Removed)
 -- =====================================================
 
 -- Sessions table for session management (if using session-based auth)
@@ -35,225 +35,244 @@ CREATE TABLE IF NOT EXISTS users (
 ) ENGINE=InnoDB;
 
 -- =====================================================
--- Service Management Tables
+-- Service Management Tables with sis_costs_ prefix
 -- =====================================================
 
--- Service categories (Infrastructure, User License, Usage-based)
-CREATE TABLE IF NOT EXISTS service_category (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE,
-    description TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+-- Drop existing tables if they exist (in correct order due to foreign keys)
+DROP TABLE IF EXISTS sis_costs_usage_consumption;
+DROP TABLE IF EXISTS sis_costs_usage_topup;
+DROP TABLE IF EXISTS sis_costs_license_plan;
+DROP TABLE IF EXISTS sis_costs_infra_invoice;
+DROP TABLE IF EXISTS sis_costs_service;
+DROP TABLE IF EXISTS sis_costs_provider;
+DROP TABLE IF EXISTS sis_costs_service_category;
+
+-- Service categories table (scsc prefix)
+CREATE TABLE sis_costs_service_category (
+    scsc_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    scsc_name VARCHAR(64) NOT NULL UNIQUE,
+    scsc_description TEXT,
+    scsc_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    scsc_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_scsc_name (scsc_name)
 ) ENGINE=InnoDB;
 
--- Service providers (AWS, Microsoft, Adobe, etc.)
-CREATE TABLE IF NOT EXISTS provider (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE,
-    description TEXT,
-    website_url VARCHAR(500),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+-- Service providers table (scp prefix) 
+CREATE TABLE sis_costs_provider (
+    scp_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    scp_name VARCHAR(128) NOT NULL UNIQUE,
+    scp_website VARCHAR(255),
+    scp_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    scp_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_scp_name (scp_name)
 ) ENGINE=InnoDB;
 
--- Individual services
-CREATE TABLE IF NOT EXISTS service (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    description TEXT,
-    provider_id INT NOT NULL,
-    category_id INT NOT NULL,
-    monthly_cost DECIMAL(10,2),
-    billing_cycle ENUM('monthly', 'quarterly', 'annually') DEFAULT 'monthly',
-    status ENUM('active', 'inactive', 'pending') DEFAULT 'active',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (provider_id) REFERENCES provider(id) ON DELETE CASCADE,
-    FOREIGN KEY (category_id) REFERENCES service_category(id) ON DELETE CASCADE,
-    INDEX idx_provider (provider_id),
-    INDEX idx_category (category_id),
-    INDEX idx_status (status)
-) ENGINE=InnoDB;
-
--- =====================================================
--- Infrastructure Cost Tracking
--- =====================================================
-
--- Infrastructure invoices and billing data
-CREATE TABLE IF NOT EXISTS infra_invoice (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    service_id INT NOT NULL,
-    invoice_date DATE NOT NULL,
-    amount DECIMAL(10,2) NOT NULL,
-    currency CHAR(3) DEFAULT 'USD',
-    billing_period_start DATE,
-    billing_period_end DATE,
-    invoice_number VARCHAR(255),
-    status ENUM('paid', 'pending', 'overdue') DEFAULT 'pending',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (service_id) REFERENCES service(id) ON DELETE CASCADE,
-    INDEX idx_service (service_id),
-    INDEX idx_invoice_date (invoice_date),
-    INDEX idx_status (status)
+-- Services table (scs prefix)
+CREATE TABLE sis_costs_service (
+    scs_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    scs_provider_id BIGINT NOT NULL,
+    scs_category_id BIGINT NOT NULL,
+    scs_name VARCHAR(128) NOT NULL,
+    scs_description TEXT,
+    scs_active BOOLEAN DEFAULT TRUE,
+    scs_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    scs_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (scs_provider_id) REFERENCES sis_costs_provider(scp_id) ON DELETE CASCADE,
+    FOREIGN KEY (scs_category_id) REFERENCES sis_costs_service_category(scsc_id) ON DELETE CASCADE,
+    INDEX idx_scs_provider (scs_provider_id),
+    INDEX idx_scs_category (scs_category_id),
+    INDEX idx_scs_name (scs_name),
+    INDEX idx_scs_active (scs_active)
 ) ENGINE=InnoDB;
 
 -- =====================================================
--- License Management
+-- Cost Tracking Tables
 -- =====================================================
 
--- License plans and subscriptions
-CREATE TABLE IF NOT EXISTS license_plan (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    service_id INT NOT NULL,
-    plan_name VARCHAR(255) NOT NULL,
-    license_count INT NOT NULL DEFAULT 1,
-    cost_per_license DECIMAL(10,2) NOT NULL,
-    total_cost DECIMAL(10,2) NOT NULL,
-    billing_cycle ENUM('monthly', 'quarterly', 'annually') DEFAULT 'monthly',
-    commitment_start_date DATE NOT NULL,
-    commitment_end_date DATE NOT NULL,
-    auto_renewal BOOLEAN DEFAULT TRUE,
-    status ENUM('active', 'expired', 'cancelled') DEFAULT 'active',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (service_id) REFERENCES service(id) ON DELETE CASCADE,
-    INDEX idx_service (service_id),
-    INDEX idx_commitment_end (commitment_end_date),
-    INDEX idx_status (status)
+-- Infrastructure invoices table (scii prefix)
+CREATE TABLE sis_costs_infra_invoice (
+    scii_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    scii_service_id BIGINT NOT NULL,
+    scii_invoice_month DATE NOT NULL,
+    scii_amount DECIMAL(12,2) NOT NULL,
+    scii_currency CHAR(3) DEFAULT 'USD',
+    scii_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    scii_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (scii_service_id) REFERENCES sis_costs_service(scs_id) ON DELETE CASCADE,
+    INDEX idx_scii_service (scii_service_id),
+    INDEX idx_scii_month (scii_invoice_month),
+    INDEX idx_scii_service_month (scii_service_id, scii_invoice_month)
 ) ENGINE=InnoDB;
 
--- =====================================================
--- Usage-Based Service Tracking
--- =====================================================
-
--- Usage credit top-ups/purchases
-CREATE TABLE IF NOT EXISTS usage_topup (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    service_id INT NOT NULL,
-    amount DECIMAL(10,2) NOT NULL,
-    credits_purchased DECIMAL(12,2) NOT NULL,
-    cost_per_credit DECIMAL(10,4) NOT NULL,
-    purchase_date DATE NOT NULL,
-    expiry_date DATE,
-    status ENUM('active', 'expired', 'used') DEFAULT 'active',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (service_id) REFERENCES service(id) ON DELETE CASCADE,
-    INDEX idx_service (service_id),
-    INDEX idx_purchase_date (purchase_date),
-    INDEX idx_expiry_date (expiry_date),
-    INDEX idx_status (status)
+-- License plans table (sclp prefix)
+CREATE TABLE sis_costs_license_plan (
+    sclp_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    sclp_service_id BIGINT NOT NULL,
+    sclp_monthly_unit_cost DECIMAL(12,2) NOT NULL,
+    sclp_qty INT NOT NULL DEFAULT 1,
+    sclp_start_month DATE NOT NULL,
+    sclp_end_month DATE,
+    sclp_annual_commitment_end DATE,
+    sclp_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    sclp_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (sclp_service_id) REFERENCES sis_costs_service(scs_id) ON DELETE CASCADE,
+    INDEX idx_sclp_service (sclp_service_id),
+    INDEX idx_sclp_dates (sclp_start_month, sclp_end_month),
+    INDEX idx_sclp_commitment (sclp_annual_commitment_end)
 ) ENGINE=InnoDB;
 
--- Usage credit consumption tracking
-CREATE TABLE IF NOT EXISTS usage_consumption (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    service_id INT NOT NULL,
-    credits_consumed DECIMAL(12,2) NOT NULL,
-    consumption_date DATE NOT NULL,
-    description TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (service_id) REFERENCES service(id) ON DELETE CASCADE,
-    INDEX idx_service (service_id),
-    INDEX idx_consumption_date (consumption_date)
+-- Usage topup table (scut prefix)
+CREATE TABLE sis_costs_usage_topup (
+    scut_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    scut_service_id BIGINT NOT NULL,
+    scut_topup_date DATE NOT NULL,
+    scut_amount_purchased DECIMAL(12,2) NOT NULL,
+    scut_currency CHAR(3) DEFAULT 'USD',
+    scut_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    scut_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (scut_service_id) REFERENCES sis_costs_service(scs_id) ON DELETE CASCADE,
+    INDEX idx_scut_service (scut_service_id),
+    INDEX idx_scut_date (scut_topup_date)
 ) ENGINE=InnoDB;
 
--- =====================================================
--- Insert Default Data
--- =====================================================
-
--- Default service categories
-INSERT INTO service_category (name, description) VALUES 
-('Infrastructure', 'Cloud infrastructure services like compute, storage, networking'),
-('User License', 'Per-user software licenses and subscriptions'),
-('Usage-based', 'Pay-per-use services like API calls, storage usage, etc.')
-ON DUPLICATE KEY UPDATE description = VALUES(description);
-
--- Sample providers (uncomment if needed)
-/*
-INSERT INTO provider (name, description, website_url) VALUES 
-('Amazon Web Services', 'Cloud computing services', 'https://aws.amazon.com'),
-('Microsoft', 'Software and cloud services', 'https://microsoft.com'),
-('Adobe', 'Creative software and services', 'https://adobe.com'),
-('Google', 'Cloud and productivity services', 'https://google.com'),
-('OpenAI', 'AI and machine learning APIs', 'https://openai.com')
-ON DUPLICATE KEY UPDATE description = VALUES(description);
-*/
+-- Usage consumption table (scuc prefix)
+CREATE TABLE sis_costs_usage_consumption (
+    scuc_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    scuc_service_id BIGINT NOT NULL,
+    scuc_consumption_date DATE NOT NULL,
+    scuc_amount_consumed DECIMAL(12,2) NOT NULL,
+    scuc_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    scuc_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (scuc_service_id) REFERENCES sis_costs_service(scs_id) ON DELETE CASCADE,
+    INDEX idx_scuc_service (scuc_service_id),
+    INDEX idx_scuc_date (scuc_consumption_date),
+    INDEX idx_scuc_service_date (scuc_service_id, scuc_consumption_date)
+) ENGINE=InnoDB;
 
 -- =====================================================
 -- Useful Views for Reporting
 -- =====================================================
 
--- Monthly spending summary view
-CREATE OR REPLACE VIEW monthly_spending_summary AS
+-- Monthly infrastructure costs by category
+CREATE OR REPLACE VIEW v_monthly_infra_costs AS
 SELECT 
-    YEAR(ii.invoice_date) as year,
-    MONTH(ii.invoice_date) as month,
-    sc.name as category_name,
-    p.name as provider_name,
-    SUM(ii.amount) as total_amount,
-    COUNT(*) as invoice_count
-FROM infra_invoice ii
-JOIN service s ON ii.service_id = s.id
-JOIN service_category sc ON s.category_id = sc.id
-JOIN provider p ON s.provider_id = p.id
-WHERE ii.status = 'paid'
-GROUP BY YEAR(ii.invoice_date), MONTH(ii.invoice_date), sc.name, p.name
-ORDER BY year DESC, month DESC, total_amount DESC;
+    YEAR(scii.scii_invoice_month) as cost_year,
+    MONTH(scii.scii_invoice_month) as cost_month,
+    scsc.scsc_name as category_name,
+    scp.scp_name as provider_name,
+    scs.scs_name as service_name,
+    SUM(scii.scii_amount) as total_amount,
+    scii.scii_currency
+FROM sis_costs_infra_invoice scii
+JOIN sis_costs_service scs ON scii.scii_service_id = scs.scs_id
+JOIN sis_costs_provider scp ON scs.scs_provider_id = scp.scp_id
+JOIN sis_costs_service_category scsc ON scs.scs_category_id = scsc.scsc_id
+WHERE scs.scs_active = TRUE
+GROUP BY cost_year, cost_month, scsc.scsc_name, scp.scp_name, scs.scs_name, scii.scii_currency
+ORDER BY cost_year DESC, cost_month DESC, total_amount DESC;
 
--- License expiration alerts view
-CREATE OR REPLACE VIEW license_expiration_alerts AS
+-- Current active licenses with costs
+CREATE OR REPLACE VIEW v_active_licenses AS
 SELECT 
-    lp.id,
-    s.name as service_name,
-    p.name as provider_name,
-    lp.plan_name,
-    lp.commitment_end_date,
-    DATEDIFF(lp.commitment_end_date, CURDATE()) as days_until_expiry,
-    lp.total_cost,
-    lp.auto_renewal
-FROM license_plan lp
-JOIN service s ON lp.service_id = s.id
-JOIN provider p ON s.provider_id = p.id
-WHERE lp.status = 'active' 
-    AND lp.commitment_end_date <= DATE_ADD(CURDATE(), INTERVAL 90 DAY)
-ORDER BY lp.commitment_end_date ASC;
+    scs.scs_name as service_name,
+    scp.scp_name as provider_name,
+    scsc.scsc_name as category_name,
+    sclp.sclp_monthly_unit_cost,
+    sclp.sclp_qty,
+    (sclp.sclp_monthly_unit_cost * sclp.sclp_qty) as monthly_total,
+    sclp.sclp_start_month,
+    sclp.sclp_end_month,
+    sclp.sclp_annual_commitment_end,
+    CASE 
+        WHEN sclp.sclp_end_month IS NULL THEN 'Ongoing'
+        WHEN sclp.sclp_end_month > CURDATE() THEN 'Active'
+        ELSE 'Expired'
+    END as status
+FROM sis_costs_license_plan sclp
+JOIN sis_costs_service scs ON sclp.sclp_service_id = scs.scs_id
+JOIN sis_costs_provider scp ON scs.scs_provider_id = scp.scp_id
+JOIN sis_costs_service_category scsc ON scs.scs_category_id = scsc.scsc_id
+WHERE scs.scs_active = TRUE
+ORDER BY monthly_total DESC;
 
--- Usage balance summary view
-CREATE OR REPLACE VIEW usage_balance_summary AS
+-- Usage balance summary
+CREATE OR REPLACE VIEW v_usage_balance AS
 SELECT 
-    s.id as service_id,
-    s.name as service_name,
-    p.name as provider_name,
-    COALESCE(SUM(ut.credits_purchased), 0) as total_credits_purchased,
-    COALESCE(SUM(uc.credits_consumed), 0) as total_credits_consumed,
-    COALESCE(SUM(ut.credits_purchased), 0) - COALESCE(SUM(uc.credits_consumed), 0) as current_balance,
-    COALESCE(SUM(ut.amount), 0) as total_amount_spent
-FROM service s
-JOIN provider p ON s.provider_id = p.id
-LEFT JOIN usage_topup ut ON s.id = ut.service_id AND ut.status = 'active'
-LEFT JOIN usage_consumption uc ON s.id = uc.service_id
-WHERE s.category_id = (SELECT id FROM service_category WHERE name = 'Usage-based')
-GROUP BY s.id, s.name, p.name
-HAVING total_credits_purchased > 0 OR total_credits_consumed > 0
-ORDER BY current_balance ASC;
+    scs.scs_name as service_name,
+    scp.scp_name as provider_name,
+    COALESCE(SUM(scut.scut_amount_purchased), 0) as total_purchased,
+    COALESCE(SUM(scuc.scuc_amount_consumed), 0) as total_consumed,
+    (COALESCE(SUM(scut.scut_amount_purchased), 0) - COALESCE(SUM(scuc.scuc_amount_consumed), 0)) as balance
+FROM sis_costs_service scs
+JOIN sis_costs_provider scp ON scs.scs_provider_id = scp.scp_id
+LEFT JOIN sis_costs_usage_topup scut ON scs.scs_id = scut.scut_service_id
+LEFT JOIN sis_costs_usage_consumption scuc ON scs.scs_id = scuc.scuc_service_id
+WHERE scs.scs_active = TRUE
+GROUP BY scs.scs_id, scs.scs_name, scp.scp_name
+HAVING total_purchased > 0 OR total_consumed > 0
+ORDER BY balance ASC;
 
 -- =====================================================
--- Performance Indexes for Common Queries
+-- Sample Data (Optional - Remove in Production)
 -- =====================================================
 
--- Composite indexes for common dashboard queries
-CREATE INDEX idx_invoice_date_service ON infra_invoice(invoice_date, service_id);
-CREATE INDEX idx_service_provider_category ON service(provider_id, category_id);
-CREATE INDEX idx_license_dates_status ON license_plan(commitment_start_date, commitment_end_date, status);
-CREATE INDEX idx_usage_service_date ON usage_consumption(service_id, consumption_date);
+-- Insert sample service categories
+INSERT IGNORE INTO sis_costs_service_category (scsc_name, scsc_description) VALUES
+('Infrastructure', 'Cloud infrastructure and hosting services'),
+('User License', 'Per-user software licenses and subscriptions'),
+('Usage-based', 'Pay-per-use services and consumption-based billing');
+
+-- Insert sample providers
+INSERT IGNORE INTO sis_costs_provider (scp_name, scp_website) VALUES
+('Amazon Web Services', 'https://aws.amazon.com'),
+('Microsoft Azure', 'https://azure.microsoft.com'),
+('Adobe', 'https://adobe.com'),
+('Slack', 'https://slack.com'),
+('GitHub', 'https://github.com');
+
+-- Insert sample services
+INSERT IGNORE INTO sis_costs_service (scs_provider_id, scs_category_id, scs_name, scs_description) VALUES
+(1, 1, 'EC2 Compute', 'Virtual servers and compute instances'),
+(1, 3, 'S3 Storage', 'Object storage service'),
+(2, 1, 'Virtual Machines', 'Azure virtual machine instances'),
+(3, 2, 'Creative Cloud', 'Adobe Creative Cloud licenses'),
+(4, 2, 'Slack Pro', 'Slack professional workspace'),
+(5, 2, 'GitHub Enterprise', 'GitHub enterprise licenses');
 
 -- =====================================================
--- Database Setup Complete
+-- Performance Optimization
 -- =====================================================
 
-SHOW TABLES;
-SELECT 'CostWatch MySQL database schema created successfully!' AS status;
+-- Additional composite indexes for common queries
+CREATE INDEX idx_scii_month_service ON sis_costs_infra_invoice(scii_invoice_month, scii_service_id);
+CREATE INDEX idx_sclp_active_dates ON sis_costs_license_plan(sclp_start_month, sclp_end_month, sclp_service_id);
+CREATE INDEX idx_scuc_month_service ON sis_costs_usage_consumption(scuc_consumption_date, scuc_service_id);
+
+-- =====================================================
+-- Database Constraints and Triggers
+-- =====================================================
+
+-- Ensure positive amounts
+ALTER TABLE sis_costs_infra_invoice ADD CONSTRAINT chk_scii_positive_amount CHECK (scii_amount > 0);
+ALTER TABLE sis_costs_license_plan ADD CONSTRAINT chk_sclp_positive_cost CHECK (sclp_monthly_unit_cost > 0);
+ALTER TABLE sis_costs_license_plan ADD CONSTRAINT chk_sclp_positive_qty CHECK (sclp_qty > 0);
+ALTER TABLE sis_costs_usage_topup ADD CONSTRAINT chk_scut_positive_amount CHECK (scut_amount_purchased > 0);
+ALTER TABLE sis_costs_usage_consumption ADD CONSTRAINT chk_scuc_positive_amount CHECK (scuc_amount_consumed > 0);
+
+-- Ensure valid date ranges for licenses
+ALTER TABLE sis_costs_license_plan ADD CONSTRAINT chk_sclp_valid_dates 
+CHECK (sclp_end_month IS NULL OR sclp_end_month >= sclp_start_month);
+
+-- =====================================================
+-- Comments for Documentation
+-- =====================================================
+
+ALTER TABLE sis_costs_service_category COMMENT = 'Service categories: Infrastructure, User License, Usage-based';
+ALTER TABLE sis_costs_provider COMMENT = 'Service providers like AWS, Microsoft, Adobe, etc.';
+ALTER TABLE sis_costs_service COMMENT = 'Individual services within providers';
+ALTER TABLE sis_costs_infra_invoice COMMENT = 'Monthly infrastructure invoices and bills';
+ALTER TABLE sis_costs_license_plan COMMENT = 'License plans with monthly costs and quantities';
+ALTER TABLE sis_costs_usage_topup COMMENT = 'Usage-based service credit purchases';
+ALTER TABLE sis_costs_usage_consumption COMMENT = 'Usage-based service consumption records';
+
+-- End of script

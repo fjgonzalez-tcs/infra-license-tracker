@@ -132,6 +132,7 @@ Preferred communication style: Simple, everyday language.
   - Column naming: id → scsc_id, name → scsc_name, etc. for consistent enterprise database standards
   - Monthly Detail widget added as primary dashboard feature
   - Successfully migrated database schema without data loss
+  - Updated MySQL deployment script with new schema and enhanced views for reporting
 
 - January 1, 2025: Major Updates
   - Added dashboard widget visibility controls (show/hide KPI cards, charts, activities)
