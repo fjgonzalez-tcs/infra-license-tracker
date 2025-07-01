@@ -25,7 +25,7 @@ import {
   type InsertUsageConsumption,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, sql, desc, asc, gte, lte } from "drizzle-orm";
+import { eq, and, sql, desc, asc, gte, lte, lt } from "drizzle-orm";
 
 export interface IStorage {
   // User operations - mandatory for Replit Auth
@@ -51,6 +51,7 @@ export interface IStorage {
   getInfraInvoices(): Promise<any[]>;
   createInfraInvoice(invoice: InsertInfraInvoice): Promise<InfraInvoice>;
   getMonthlySpend(year: number, month: number): Promise<any[]>;
+  getMonthlyDetails(year: number, month: number): Promise<any[]>;
 
   // License plan operations
   getLicensePlans(): Promise<any[]>;
@@ -203,6 +204,82 @@ export class DatabaseStorage implements IStorage {
       )
       .groupBy(serviceCategory.id, serviceCategory.name)
       .orderBy(asc(serviceCategory.name));
+  }
+
+  async getMonthlyDetails(year: number, month: number): Promise<any[]> {
+    const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
+    const endDate = month === 12 ? `${year + 1}-01-01` : `${year}-${(month + 1).toString().padStart(2, '0')}-01`;
+
+    // Get infrastructure costs
+    const infraCosts = await db
+      .select({
+        serviceName: service.name,
+        providerName: provider.name,
+        category: serviceCategory.name,
+        monthlyAmount: infraInvoice.amount,
+        type: sql<string>`'infrastructure'`,
+      })
+      .from(infraInvoice)
+      .innerJoin(service, eq(infraInvoice.serviceId, service.id))
+      .innerJoin(provider, eq(service.providerId, provider.id))
+      .innerJoin(serviceCategory, eq(service.categoryId, serviceCategory.id))
+      .where(
+        and(
+          gte(infraInvoice.invoiceMonth, startDate),
+          lt(infraInvoice.invoiceMonth, endDate)
+        )
+      );
+
+    // Get license costs
+    const licenseCosts = await db
+      .select({
+        serviceName: service.name,
+        providerName: provider.name,
+        category: serviceCategory.name,
+        monthlyAmount: sql<number>`${licensePlan.monthlyUnitCost} * ${licensePlan.qty}`,
+        type: sql<string>`'license'`,
+      })
+      .from(licensePlan)
+      .innerJoin(service, eq(licensePlan.serviceId, service.id))
+      .innerJoin(provider, eq(service.providerId, provider.id))
+      .innerJoin(serviceCategory, eq(service.categoryId, serviceCategory.id))
+      .where(
+        and(
+          lte(licensePlan.startMonth, endDate),
+          gte(licensePlan.endMonth, startDate)
+        )
+      );
+
+    // Get usage costs (estimated based on consumption and topup rates)
+    const usageCosts = await db
+      .select({
+        serviceName: service.name,
+        providerName: provider.name,
+        category: serviceCategory.name,
+        monthlyAmount: sql<number>`COALESCE(SUM(${usageConsumption.unitsConsumed} * (
+          SELECT AVG(${usageTopup.costPerUnit}) 
+          FROM ${usageTopup} 
+          WHERE ${usageTopup.serviceId} = ${service.id}
+        )), 0)`,
+        type: sql<string>`'usage'`,
+      })
+      .from(usageConsumption)
+      .innerJoin(service, eq(usageConsumption.serviceId, service.id))
+      .innerJoin(provider, eq(service.providerId, provider.id))
+      .innerJoin(serviceCategory, eq(service.categoryId, serviceCategory.id))
+      .where(
+        and(
+          gte(usageConsumption.consumptionMonth, startDate),
+          lt(usageConsumption.consumptionMonth, endDate)
+        )
+      )
+      .groupBy(service.id, service.name, provider.name, serviceCategory.name);
+
+    // Combine all costs
+    const allCosts = [...infraCosts, ...licenseCosts, ...usageCosts];
+    
+    // Sort by amount descending
+    return allCosts.sort((a, b) => Number(b.monthlyAmount) - Number(a.monthlyAmount));
   }
 
   // License plan operations

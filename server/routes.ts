@@ -48,6 +48,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Monthly details endpoint for dashboard table
+  app.get('/api/monthly-details/:year/:month', async (req, res) => {
+    try {
+      const year = parseInt(req.params.year);
+      const month = parseInt(req.params.month);
+      
+      const monthlyDetails = await storage.getMonthlyDetails(year, month);
+      res.json(monthlyDetails);
+    } catch (error) {
+      console.error("Error fetching monthly details:", error);
+      res.status(500).json({ message: "Failed to fetch monthly details" });
+    }
+  });
+
   // Service category routes
   app.get('/api/service-categories', async (req, res) => {
     try {
