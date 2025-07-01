@@ -424,6 +424,114 @@ export class DatabaseStorage implements IStorage {
 
     return alerts;
   }
+
+  async getCostForecast(): Promise<any> {
+    // Get 12 months of historical data for trend analysis
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    
+    const historicalData = await db
+      .select({
+        month: sql<string>`TO_CHAR(${infraInvoice.invoiceMonth}, 'YYYY-MM')`,
+        totalAmount: sql<number>`SUM(${infraInvoice.amount})`,
+      })
+      .from(infraInvoice)
+      .where(gte(infraInvoice.invoiceMonth, oneYearAgo.toISOString().split('T')[0]))
+      .groupBy(sql`TO_CHAR(${infraInvoice.invoiceMonth}, 'YYYY-MM')`)
+      .orderBy(sql`TO_CHAR(${infraInvoice.invoiceMonth}, 'YYYY-MM')`);
+
+    // If no historical data, return a basic forecast
+    if (historicalData.length === 0) {
+      return {
+        nextMonthProjection: 0,
+        quarterProjection: 0,
+        yearProjection: 0,
+        trend: 'stable',
+        trendPercentage: 0,
+        forecasts: [],
+        budgetAlert: null,
+      };
+    }
+
+    // Calculate trend - simple linear regression
+    const amounts = historicalData.map(d => d.totalAmount);
+    const n = amounts.length;
+    
+    if (n < 2) {
+      const lastAmount = amounts[0] || 0;
+      return {
+        nextMonthProjection: lastAmount,
+        quarterProjection: lastAmount * 3,
+        yearProjection: lastAmount * 12,
+        trend: 'stable',
+        trendPercentage: 0,
+        forecasts: Array.from({ length: 6 }, (_, i) => ({
+          month: new Date(Date.now() + (i + 1) * 30 * 24 * 60 * 60 * 1000).toLocaleString('default', { month: 'long', year: 'numeric' }),
+          projected: lastAmount,
+          confidence: 'low' as const,
+        })),
+        budgetAlert: null,
+      };
+    }
+
+    // Simple linear trend calculation
+    const sumX = amounts.map((_, i) => i).reduce((a, b) => a + b, 0);
+    const sumY = amounts.reduce((a, b) => a + b, 0);
+    const sumXY = amounts.map((y, i) => i * y).reduce((a, b) => a + b, 0);
+    const sumXX = amounts.map((_, i) => i * i).reduce((a, b) => a + b, 0);
+
+    const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+    const intercept = (sumY - slope * sumX) / n;
+
+    // Calculate trend percentage
+    const firstAmount = amounts[0];
+    const lastAmount = amounts[amounts.length - 1];
+    const trendPercentage = firstAmount > 0 ? ((lastAmount - firstAmount) / firstAmount) * 100 : 0;
+    
+    // Determine trend direction
+    let trend: 'increasing' | 'decreasing' | 'stable' = 'stable';
+    if (Math.abs(trendPercentage) > 5) {
+      trend = trendPercentage > 0 ? 'increasing' : 'decreasing';
+    }
+
+    // Project future months using linear trend
+    const forecasts = Array.from({ length: 6 }, (_, i) => {
+      const futureIndex = n + i;
+      const projected = Math.max(0, intercept + slope * futureIndex);
+      const confidence = i < 2 ? 'high' : i < 4 ? 'medium' : 'low';
+      const futureDate = new Date();
+      futureDate.setMonth(futureDate.getMonth() + i + 1);
+      
+      return {
+        month: futureDate.toLocaleString('default', { month: 'long', year: 'numeric' }),
+        projected: Math.round(projected),
+        confidence,
+      };
+    });
+
+    const nextMonthProjection = forecasts[0]?.projected || 0;
+    const quarterProjection = forecasts.slice(0, 3).reduce((sum, f) => sum + f.projected, 0);
+    const yearProjection = forecasts.reduce((sum, f) => sum + f.projected, 0) * 2; // Extend to full year
+
+    // Generate budget alert if costs are increasing rapidly
+    let budgetAlert = null;
+    if (trend === 'increasing' && trendPercentage > 20) {
+      budgetAlert = {
+        message: `Costs trending up ${Math.round(trendPercentage)}% - consider reviewing high-impact services`,
+        severity: trendPercentage > 50 ? 'critical' : 'warning',
+      };
+    }
+
+    return {
+      nextMonthProjection,
+      quarterProjection,
+      yearProjection,
+      trend,
+      trendPercentage: Math.round(Math.abs(trendPercentage)),
+      forecasts,
+      budgetAlert,
+    };
+  }
 }
 
 export const storage = new DatabaseStorage();

@@ -6,6 +6,7 @@ import MonthlySpendChart from "@/components/dashboard/monthly-spend-chart";
 import CategoryChart from "@/components/dashboard/category-chart";
 import RecentActivities from "@/components/dashboard/recent-activities";
 import MonthlyDetailTable from "@/components/dashboard/monthly-detail-table";
+import CostForecast from "@/components/dashboard/cost-forecast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Settings } from "lucide-react";
@@ -17,6 +18,7 @@ export default function Dashboard() {
     monthlyChart: true,
     categoryChart: true,
     recentActivities: true,
+    costForecast: true,
   });
 
   const [showSettings, setShowSettings] = useState(false);
@@ -110,6 +112,19 @@ export default function Dashboard() {
                       Recent Activities & Alerts
                     </label>
                   </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="cost-forecast"
+                      checked={showWidgets.costForecast}
+                      onCheckedChange={(checked) =>
+                        setShowWidgets(prev => ({ ...prev, costForecast: checked === true }))
+                      }
+                    />
+                    <label htmlFor="cost-forecast" className="text-sm font-medium">
+                      Cost Forecast & Trends
+                    </label>
+                  </div>
                 </CardContent>
               </Card>
             )}
@@ -126,6 +141,8 @@ export default function Dashboard() {
           </div>
 
           {showWidgets.recentActivities && <RecentActivities />}
+          
+          {showWidgets.costForecast && <CostForecast />}
         </main>
       </div>
     </div>
