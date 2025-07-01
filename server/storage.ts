@@ -230,7 +230,7 @@ export class DatabaseStorage implements IStorage {
         )
       );
 
-    // Get license costs
+    // Get license costs for active plans
     const licenseCosts = await db
       .select({
         serviceName: service.name,
@@ -250,33 +250,8 @@ export class DatabaseStorage implements IStorage {
         )
       );
 
-    // Get usage costs (estimated based on consumption and topup rates)
-    const usageCosts = await db
-      .select({
-        serviceName: service.name,
-        providerName: provider.name,
-        category: serviceCategory.name,
-        monthlyAmount: sql<number>`COALESCE(SUM(${usageConsumption.unitsConsumed} * (
-          SELECT AVG(${usageTopup.costPerUnit}) 
-          FROM ${usageTopup} 
-          WHERE ${usageTopup.serviceId} = ${service.id}
-        )), 0)`,
-        type: sql<string>`'usage'`,
-      })
-      .from(usageConsumption)
-      .innerJoin(service, eq(usageConsumption.serviceId, service.id))
-      .innerJoin(provider, eq(service.providerId, provider.id))
-      .innerJoin(serviceCategory, eq(service.categoryId, serviceCategory.id))
-      .where(
-        and(
-          gte(usageConsumption.consumptionMonth, startDate),
-          lt(usageConsumption.consumptionMonth, endDate)
-        )
-      )
-      .groupBy(service.id, service.name, provider.name, serviceCategory.name);
-
     // Combine all costs
-    const allCosts = [...infraCosts, ...licenseCosts, ...usageCosts];
+    const allCosts = [...infraCosts, ...licenseCosts];
     
     // Sort by amount descending
     return allCosts.sort((a, b) => Number(b.monthlyAmount) - Number(a.monthlyAmount));

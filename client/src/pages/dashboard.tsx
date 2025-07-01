@@ -5,12 +5,14 @@ import KpiCards from "@/components/dashboard/kpi-cards";
 import MonthlySpendChart from "@/components/dashboard/monthly-spend-chart";
 import CategoryChart from "@/components/dashboard/category-chart";
 import RecentActivities from "@/components/dashboard/recent-activities";
+import MonthlyDetailTable from "@/components/dashboard/monthly-detail-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Settings } from "lucide-react";
 
 export default function Dashboard() {
   const [showWidgets, setShowWidgets] = useState({
+    monthlyDetail: true,
     kpiCards: true,
     monthlyChart: true,
     categoryChart: true,
@@ -44,6 +46,19 @@ export default function Dashboard() {
                   <CardTitle className="text-lg">Show/Hide Widgets</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="monthly-detail"
+                      checked={showWidgets.monthlyDetail}
+                      onCheckedChange={(checked) =>
+                        setShowWidgets(prev => ({ ...prev, monthlyDetail: checked === true }))
+                      }
+                    />
+                    <label htmlFor="monthly-detail" className="text-sm font-medium">
+                      Monthly Detail Table
+                    </label>
+                  </div>
+                  
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="kpi-cards"
@@ -101,6 +116,8 @@ export default function Dashboard() {
           </div>
 
           {/* Conditional Widget Rendering */}
+          {showWidgets.monthlyDetail && <MonthlyDetailTable />}
+          
           {showWidgets.kpiCards && <KpiCards />}
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
