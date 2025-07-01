@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { BarChart3, Server, Tag, TrendingUp, Target, LogOut, User } from "lucide-react";
+import { BarChart3, Server, Tag, TrendingUp, LogOut, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function Sidebar() {
@@ -11,7 +11,6 @@ export default function Sidebar() {
     { name: "Services", href: "/services", icon: Server },
     { name: "Licenses", href: "/licenses", icon: Tag },
     { name: "Usage Tracking", href: "/usage", icon: TrendingUp },
-    { name: "Budget Management", href: "/budget", icon: Target },
   ];
 
   return (

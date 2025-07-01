@@ -8,7 +8,6 @@ import Dashboard from "@/pages/dashboard";
 import Services from "@/pages/services";
 import Licenses from "@/pages/licenses";
 import Usage from "@/pages/usage";
-import Budget from "@/pages/budget";
 
 function Router() {
   return (
@@ -17,7 +16,6 @@ function Router() {
       <Route path="/services" component={Services} />
       <Route path="/licenses" component={Licenses} />
       <Route path="/usage" component={Usage} />
-      <Route path="/budget" component={Budget} />
       <Route component={NotFound} />
     </Switch>
   );
