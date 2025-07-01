@@ -125,5 +125,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Changelog
 
-Changelog:
-- July 01, 2025. Initial setup
+- January 1, 2025: Major Updates
+  - Added dashboard widget visibility controls (show/hide KPI cards, charts, activities)
+  - Removed authentication system for intranet deployment
+  - Created comprehensive MySQL deployment scripts with schema, indexes, and views
+  - Updated all pages to work without authentication requirements
+  - Documented production database migration strategy
+
+- July 01, 2025: Initial setup
+  - Complete full-stack application with PostgreSQL
+  - Dashboard with KPI cards and charts
+  - Service, license, and usage management modules
+  - Replit Auth integration (now removed)
