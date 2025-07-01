@@ -125,6 +125,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Changelog
 
+- July 1, 2025: Database Schema Overhaul
+  - Implemented new naming convention with "sis_costs_" prefix for all table names
+  - Added mnemonic prefixes for all column names (e.g., "scsc_" for sis_costs_service_category)
+  - Tables renamed: service_category → sis_costs_service_category, provider → sis_costs_provider, etc.
+  - Column naming: id → scsc_id, name → scsc_name, etc. for consistent enterprise database standards
+  - Monthly Detail widget added as primary dashboard feature
+  - Successfully migrated database schema without data loss
+
 - January 1, 2025: Major Updates
   - Added dashboard widget visibility controls (show/hide KPI cards, charts, activities)
   - Removed authentication system for intranet deployment
