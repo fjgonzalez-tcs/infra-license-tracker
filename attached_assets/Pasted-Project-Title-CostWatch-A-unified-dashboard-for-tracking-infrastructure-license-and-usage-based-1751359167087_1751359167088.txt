@@ -1,0 +1,174 @@
+Project Title
+“CostWatch — A unified dashboard for tracking infrastructure, license, and usage‑based service costs.”
+
+1. Stack & Project Skeleton
+Back‑end
+* Language/Framework: Python 3.12 + FastAPI
+* ORM: SQLAlchemy 2.x (async)
+* DB: MySQL 8.x
+* Auth: JSON Web Token (simple email + password for a single admin user)
+
+Front‑end
+* React 18 + Vite
+* State: React‑Query
+* UI: Mantine (lightweight, TypeScript ready)
+* Charts: Chart.js 4 (via react‑chartjs‑2)
+
+Repository layout
+
+bash
+Copy
+/backend       – FastAPI app, database, tests
+/frontend      – React app
+/.replit
+replit.nix
+2. Database Design (MySQL)
+Use naming in snake_case, PKs as id BIGINT AUTO_INCREMENT, FK indexes on all relations. All created_at and updated_at fields = TIMESTAMP with default CURRENT_TIMESTAMP & ON UPDATE. Use DECIMAL(12,2) for monetary fields to avoid float errors.
+
+sql
+Copy
+-- MASTER TABLES
+CREATE TABLE service_category (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(64) UNIQUE NOT NULL,            -- 'Infrastructure', 'User License', 'Usage'
+  description TEXT
+);
+
+CREATE TABLE provider (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(128) UNIQUE NOT NULL,
+  website VARCHAR(255)
+);
+
+CREATE TABLE service (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  provider_id BIGINT NOT NULL,
+  category_id BIGINT NOT NULL,
+  name VARCHAR(128) NOT NULL,
+  description TEXT,
+  active BOOLEAN DEFAULT TRUE,
+  FOREIGN KEY (provider_id)  REFERENCES provider(id),
+  FOREIGN KEY (category_id)  REFERENCES service_category(id)
+);
+
+-- INFRASTRUCTURE SERVICES (variable monthly invoices)
+CREATE TABLE infra_invoice (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  service_id BIGINT NOT NULL,
+  invoice_month DATE NOT NULL,                 -- use 1st of month (e.g., 2025‑07‑01)
+  amount DECIMAL(12,2) NOT NULL,
+  currency CHAR(3) DEFAULT 'USD',
+  FOREIGN KEY (service_id) REFERENCES service(id),
+  UNIQUE KEY uk_infra (service_id, invoice_month)
+);
+
+-- USER LICENSES (price & quantity can change)
+CREATE TABLE license_plan (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  service_id BIGINT NOT NULL,
+  monthly_unit_cost DECIMAL(12,2) NOT NULL,
+  qty INT NOT NULL DEFAULT 1,
+  start_month DATE NOT NULL,
+  end_month DATE,                              -- nullable, open‑ended
+  annual_commitment_end DATE,                  -- nullable
+  FOREIGN KEY (service_id) REFERENCES service(id),
+  UNIQUE KEY uk_plan (service_id, start_month)
+);
+
+-- USAGE SERVICES (add funds then consume)
+CREATE TABLE usage_topup (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  service_id BIGINT NOT NULL,
+  topup_date DATE NOT NULL,
+  amount_purchased DECIMAL(12,2) NOT NULL,
+  currency CHAR(3) DEFAULT 'USD',
+  FOREIGN KEY (service_id) REFERENCES service(id)
+);
+
+CREATE TABLE usage_consumption (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  service_id BIGINT NOT NULL,
+  consumption_date DATE NOT NULL,
+  amount_consumed DECIMAL(12,2) NOT NULL,      -- negative outflow
+  FOREIGN KEY (service_id) REFERENCES service(id)
+);
+3. Data‑access & Business Logic
+Build repository classes for each table with CRUD methods.
+
+Provide service‑layer helpers:
+* get_monthly_spend(year:int, month:int) returning aggregated totals per category.
+* get_license_commitments(expiring_before:date) to alert on annual commitments.
+* get_usage_balance(service_id) = Σ top‑ups − Σ consumption.
+* low_balance_alerts(threshold_percent) (e.g., warn when balance ‹ 20 % of last top‑up).
+
+4. REST API Specification (FastAPI)
+Verb	Route	Purpose
+GET	/summary?year=&month=	Monthly spend grouped by category
+POST	/service	Create Service
+PUT	/service/{id}	Update Service
+DELETE	/service/{id}	Delete Service (soft‑delete flag)
+GET	/licenses	List license plans (filter by active)
+POST	/licenses	Add new plan or price/qty change
+GET	/usage/topups	List top‑ups
+POST	/usage/topups	Record top‑up
+POST	/usage/consumption	Record consumption event
+GET	/alerts/commitments	Commitments nearing end
+GET	/alerts/low‑balance	Usage services below threshold
+
+Return JSON. Use pydantic models for validation.
+
+5. Front‑end Pages
+Path	Component	Key Elements
+/ (Home)	DashboardHome	Bar/line chart: monthly spend (stacked by category). KPI cards: current month spend, YOY delta, licenses count, usage low‑balance alerts.
+/services	ServiceManager	Table of all services with inline edit, toggle active, link to detail.
+/licenses	LicenseManager	Table by provider → license name → current qty → unit cost → monthly cost. Modal to add new plan or record price/qty change. Badge if under annual commitment & remaining months.
+/usage	UsageManager	For each usage service: current balance, threshold, last top‑up date. Sub‑table of all top‑ups & consumption events. Button to “Record Top‑up” or “Add Consumption”.
+(Optional) /settings/users	Auth settings (single admin)	
+
+6. UX Details
+Currency select component but default USD.
+
+Dates use YYYY‑MM‑DD; months displayed as MMM YYYY (e.g., Jul 2025).
+
+Confirm dialogs before destructive actions.
+
+Toast notifications on success / error.
+
+Table columns sortable & filterable; page size = 20.
+
+7. Testing
+Pytest with SQLite in‑memory for unit tests.
+
+React Testing Library + Vitest for components.
+
+8. Seed / Demo Data
+3 infrastructure services (AWS, Azure, GCP) with 6 months invoices.
+
+2 license providers (Microsoft 365, Adobe CC) with varying qty & cost changes across 12 months.
+
+2 usage services (OpenAI API, Twilio) with top‑ups & consumption.
+
+Include an optional flag --seed in backend main.py to load demo data automatically for playground sessions.
+
+9. Deployment (Replit)
+Provide .replit that starts sh ./run.sh; script launches both FastAPI (port 8000) and Vite (port 5173) concurrently with forever or concurrently.
+
+Include Dockerfile for local cloning (multi‑stage: backend → frontend build → nginx).
+
+10. Deliverables Checklist
+ MySQL schema migration scripts (/backend/migrations).
+
+ Fully typed FastAPI backend with Swagger docs enabled.
+
+ React UI matching page specs with responsive layout.
+
+ Readme detailing setup, seed, and usage.
+
+ 80 % unit‑test coverage minimum (pytest --cov).
+
+11. Tone & Code Style
+Follow PEP 8 (backend) and ESLint AirBnB (frontend).
+
+Write clear docstrings and inline comments for any non‑trivial logic.
+
+Commit messages in English, present‑tense imperative.
