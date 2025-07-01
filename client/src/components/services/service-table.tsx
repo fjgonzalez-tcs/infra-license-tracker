@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Edit, Trash2, Server, User, BarChart3 } from "lucide-react";
-import { SiAws, SiMicrosoft, SiGoogle, SiAdobe } from "react-icons/si";
+// Removed react-icons imports for now, using lucide icons
 import AddServiceModal from "./add-service-modal";
 
 export default function ServiceTable() {
@@ -56,16 +56,16 @@ export default function ServiceTable() {
   const getProviderIcon = (providerName: string) => {
     const name = providerName?.toLowerCase() || '';
     if (name.includes('amazon') || name.includes('aws')) {
-      return <SiAws className="text-orange-600" />;
+      return <Server className="text-orange-600" />;
     }
     if (name.includes('microsoft')) {
-      return <SiMicrosoft className="text-blue-600" />;
+      return <Server className="text-blue-600" />;
     }
     if (name.includes('google')) {
-      return <SiGoogle className="text-blue-500" />;
+      return <Server className="text-blue-500" />;
     }
     if (name.includes('adobe')) {
-      return <SiAdobe className="text-red-600" />;
+      return <Server className="text-red-600" />;
     }
     return <Server className="text-gray-600" />;
   };

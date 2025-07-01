@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, Edit, RotateCcw, DollarSign, Tag, AlertTriangle } from "lucide-react";
-import { SiMicrosoft, SiAdobe, SiSlack } from "react-icons/si";
+// Removed react-icons imports, using lucide icons
 import AddLicenseModal from "./add-license-modal";
 
 export default function LicenseTable() {
@@ -24,13 +24,13 @@ export default function LicenseTable() {
   const getProviderIcon = (providerName: string) => {
     const name = providerName?.toLowerCase() || '';
     if (name.includes('microsoft')) {
-      return <SiMicrosoft className="text-blue-600" />;
+      return <Tag className="text-blue-600" />;
     }
     if (name.includes('adobe')) {
-      return <SiAdobe className="text-red-600" />;
+      return <Tag className="text-red-600" />;
     }
     if (name.includes('slack')) {
-      return <SiSlack className="text-purple-600" />;
+      return <Tag className="text-purple-600" />;
     }
     return <Tag className="text-gray-600" />;
   };

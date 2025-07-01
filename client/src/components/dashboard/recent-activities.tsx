@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, TriangleAlert, Info, Download } from "lucide-react";
-import { SiAws, SiMicrosoft } from "react-icons/si";
 import { Bot } from "lucide-react";
 
 export default function RecentActivities() {
@@ -25,10 +24,10 @@ export default function RecentActivities() {
   const getProviderIcon = (providerName: string) => {
     const name = providerName?.toLowerCase() || '';
     if (name.includes('amazon') || name.includes('aws')) {
-      return <SiAws className="text-orange-600" />;
+      return <Bot className="text-orange-600" />;
     }
     if (name.includes('microsoft')) {
-      return <SiMicrosoft className="text-blue-600" />;
+      return <Bot className="text-blue-600" />;
     }
     if (name.includes('openai')) {
       return <Bot className="text-green-600" />;
