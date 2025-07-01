@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+// Authentication removed for intranet deployment
 import {
   insertServiceCategorySchema,
   insertProviderSchema,
@@ -14,23 +14,8 @@ import {
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth middleware
-  await setupAuth(app);
-
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
-
   // Dashboard summary endpoint
-  app.get('/api/summary', isAuthenticated, async (req, res) => {
+  app.get('/api/summary', async (req, res) => {
     try {
       const { year = new Date().getFullYear(), month = new Date().getMonth() + 1 } = req.query;
       const monthlySpend = await storage.getMonthlySpend(Number(year), Number(month));
@@ -64,7 +49,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Service category routes
-  app.get('/api/service-categories', isAuthenticated, async (req, res) => {
+  app.get('/api/service-categories', async (req, res) => {
     try {
       const categories = await storage.getServiceCategories();
       res.json(categories);
@@ -74,7 +59,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/service-categories', isAuthenticated, async (req, res) => {
+  app.post('/api/service-categories', async (req, res) => {
     try {
       const validatedData = insertServiceCategorySchema.parse(req.body);
       const category = await storage.createServiceCategory(validatedData);
@@ -90,7 +75,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Provider routes
-  app.get('/api/providers', isAuthenticated, async (req, res) => {
+  app.get('/api/providers', async (req, res) => {
     try {
       const providers = await storage.getProviders();
       res.json(providers);
@@ -100,7 +85,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/providers', isAuthenticated, async (req, res) => {
+  app.post('/api/providers', async (req, res) => {
     try {
       const validatedData = insertProviderSchema.parse(req.body);
       const provider = await storage.createProvider(validatedData);
@@ -116,7 +101,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Service routes
-  app.get('/api/services', isAuthenticated, async (req, res) => {
+  app.get('/api/services', async (req, res) => {
     try {
       const services = await storage.getServices();
       res.json(services);
@@ -126,7 +111,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/services', isAuthenticated, async (req, res) => {
+  app.post('/api/services', async (req, res) => {
     try {
       const validatedData = insertServiceSchema.parse(req.body);
       const service = await storage.createService(validatedData);
@@ -141,7 +126,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/services/:id', isAuthenticated, async (req, res) => {
+  app.put('/api/services/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const validatedData = insertServiceSchema.partial().parse(req.body);
@@ -157,7 +142,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/services/:id', isAuthenticated, async (req, res) => {
+  app.delete('/api/services/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       await storage.deleteService(id);
@@ -169,7 +154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Infrastructure invoice routes
-  app.get('/api/invoices', isAuthenticated, async (req, res) => {
+  app.get('/api/invoices', async (req, res) => {
     try {
       const invoices = await storage.getInfraInvoices();
       res.json(invoices);
@@ -179,7 +164,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/invoices', isAuthenticated, async (req, res) => {
+  app.post('/api/invoices', async (req, res) => {
     try {
       const validatedData = insertInfraInvoiceSchema.parse(req.body);
       const invoice = await storage.createInfraInvoice(validatedData);
@@ -195,7 +180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // License plan routes
-  app.get('/api/licenses', isAuthenticated, async (req, res) => {
+  app.get('/api/licenses', async (req, res) => {
     try {
       const licenses = await storage.getLicensePlans();
       res.json(licenses);
@@ -205,7 +190,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/licenses', isAuthenticated, async (req, res) => {
+  app.post('/api/licenses', async (req, res) => {
     try {
       const validatedData = insertLicensePlanSchema.parse(req.body);
       const license = await storage.createLicensePlan(validatedData);
@@ -221,7 +206,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Usage routes
-  app.get('/api/usage/topups', isAuthenticated, async (req, res) => {
+  app.get('/api/usage/topups', async (req, res) => {
     try {
       const topups = await storage.getUsageTopups();
       res.json(topups);
@@ -231,7 +216,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/usage/topups', isAuthenticated, async (req, res) => {
+  app.post('/api/usage/topups', async (req, res) => {
     try {
       const validatedData = insertUsageTopupSchema.parse(req.body);
       const topup = await storage.createUsageTopup(validatedData);
@@ -246,7 +231,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/usage/consumption', isAuthenticated, async (req, res) => {
+  app.get('/api/usage/consumption', async (req, res) => {
     try {
       const consumption = await storage.getUsageConsumption();
       res.json(consumption);
@@ -256,7 +241,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/usage/consumption', isAuthenticated, async (req, res) => {
+  app.post('/api/usage/consumption', async (req, res) => {
     try {
       const validatedData = insertUsageConsumptionSchema.parse(req.body);
       const consumption = await storage.createUsageConsumption(validatedData);
@@ -271,7 +256,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/usage/balance/:serviceId', isAuthenticated, async (req, res) => {
+  app.get('/api/usage/balance/:serviceId', async (req, res) => {
     try {
       const serviceId = parseInt(req.params.serviceId);
       const balance = await storage.getUsageBalance(serviceId);
@@ -283,7 +268,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Alert routes
-  app.get('/api/alerts/commitments', isAuthenticated, async (req, res) => {
+  app.get('/api/alerts/commitments', async (req, res) => {
     try {
       const { days = 30 } = req.query;
       const targetDate = new Date();
@@ -296,7 +281,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/alerts/low-balance', isAuthenticated, async (req, res) => {
+  app.get('/api/alerts/low-balance', async (req, res) => {
     try {
       const { threshold = 20 } = req.query;
       const alerts = await storage.getLowBalanceAlerts(Number(threshold));

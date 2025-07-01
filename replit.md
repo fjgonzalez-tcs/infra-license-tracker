@@ -4,6 +4,11 @@
 
 CostWatch is a unified dashboard application for tracking infrastructure, license, and usage-based service costs. It provides comprehensive visibility into technology spending across different service categories including cloud infrastructure, software licenses, and usage-based services.
 
+**Latest Updates:**
+- Dashboard now includes widget visibility controls - users can show/hide different sections
+- Authentication system removed for intranet deployment
+- MySQL deployment scripts created for production environments
+
 ## System Architecture
 
 The application follows a modern full-stack architecture with the following components:
@@ -37,10 +42,10 @@ The application follows a modern full-stack architecture with the following comp
 
 ## Key Components
 
-### Authentication System
-- **Provider**: Replit OIDC for single sign-on
-- **Session Management**: Server-side sessions with PostgreSQL storage
-- **Authorization**: Route-based protection with middleware
+### Authentication System (REMOVED)
+- **Note**: Authentication has been removed for intranet deployment
+- **Previous**: Replit OIDC integration with session management
+- **Current**: Direct access to all routes without authentication
 
 ### Data Models
 - **Service Categories**: Infrastructure, User License, Usage-based
@@ -95,16 +100,24 @@ The application follows a modern full-stack architecture with the following comp
 - **Local Development**: Vite dev server with Express backend
 - **Hot Reload**: Automatic reloading for both frontend and backend changes
 - **Error Handling**: Runtime error overlay in development
+- **Database**: PostgreSQL via Neon serverless for testing
 
 ### Production Build
 - **Frontend**: Vite builds optimized static assets
 - **Backend**: esbuild bundles Express server for production
 - **Deployment**: Single node process serving both API and static files
 
+### Production Database Migration
+- **Development**: PostgreSQL (current setup)
+- **Production**: MySQL deployment support available
+- **Migration Script**: `mysql-deployment-scripts.sql` contains complete schema
+- **Features**: Full table structure, indexes, views, and sample data
+- **Compatibility**: Designed for MySQL 8.0+ with UTF8MB4 support
+
 ### Environment Configuration
-- **Database**: PostgreSQL connection via DATABASE_URL
-- **Authentication**: Replit OIDC configuration
-- **Sessions**: Secure session management with configurable secrets
+- **Database**: DATABASE_URL for PostgreSQL (dev) or MySQL (prod)
+- **Authentication**: Removed for intranet deployment
+- **Access**: Direct access to all application features
 
 ## User Preferences
 
