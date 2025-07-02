@@ -4,14 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useQuery } from "@tanstack/react-query";
-import { Bot, MessageSquare, Plus, TrendingUp } from "lucide-react";
+import { Bot, MessageSquare, Plus, TrendingUp, Upload } from "lucide-react";
 import { SiOpenai, SiTwilio } from "react-icons/si";
 import AddTopupModal from "./add-topup-modal";
 import AddConsumptionModal from "./add-consumption-modal";
+import BulkImportModal from "./bulk-import-modal";
 
 export default function UsageCards() {
   const [isTopupModalOpen, setIsTopupModalOpen] = useState(false);
   const [isConsumptionModalOpen, setIsConsumptionModalOpen] = useState(false);
+  const [isBulkImportModalOpen, setIsBulkImportModalOpen] = useState(false);
   const [selectedServiceId, setSelectedServiceId] = useState<number | null>(null);
 
   const { data: services } = useQuery({
@@ -50,8 +52,8 @@ export default function UsageCards() {
   };
 
   const getUsageBalance = (serviceId: number) => {
-    const serviceTopups = topups?.filter((t: any) => t.service?.id === serviceId) || [];
-    const serviceConsumption = consumption?.filter((c: any) => c.service?.id === serviceId) || [];
+    const serviceTopups = Array.isArray(topups) ? topups.filter((t: any) => t.service?.id === serviceId) : [];
+    const serviceConsumption = Array.isArray(consumption) ? consumption.filter((c: any) => c.service?.id === serviceId) : [];
     
     const totalPurchased = serviceTopups.reduce((sum: number, topup: any) => 
       sum + Number(topup.amountPurchased), 0);
