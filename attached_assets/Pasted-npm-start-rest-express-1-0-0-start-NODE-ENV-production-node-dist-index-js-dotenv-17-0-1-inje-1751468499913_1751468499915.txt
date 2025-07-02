@@ -1,0 +1,157 @@
+npm start
+
+> rest-express@1.0.0 start
+> NODE_ENV=production node dist/index.js
+
+[dotenv@17.0.1] injecting env (4) from .env.production – [tip] encrypt with dotenvx: https://dotenvx.com
+Loading environment from: .env.production
+Environment: production
+Port: 3002
+🌱 Starting database seeding with production data...
+📂 Seeding service categories...
+3:01:15 PM [express] serving on port 3002
+  ❌ Error creating category Infrastructure: Error: There was an error establishing an SSL connection
+    at /var/www/node-projects/infra-license-tracker/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///var/www/node-projects/infra-license-tracker/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async seedProductionData (file:///var/www/node-projects/infra-license-tracker/dist/index.js:693:26)
+  ❌ Error creating category User License: Error: There was an error establishing an SSL connection
+    at /var/www/node-projects/infra-license-tracker/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///var/www/node-projects/infra-license-tracker/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async seedProductionData (file:///var/www/node-projects/infra-license-tracker/dist/index.js:693:26)
+  ❌ Error creating category AI Services: Error: There was an error establishing an SSL connection
+    at /var/www/node-projects/infra-license-tracker/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///var/www/node-projects/infra-license-tracker/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async seedProductionData (file:///var/www/node-projects/infra-license-tracker/dist/index.js:693:26)
+🏢 Seeding providers...
+  ❌ Error creating provider AWS: Error: There was an error establishing an SSL connection
+    at /var/www/node-projects/infra-license-tracker/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///var/www/node-projects/infra-license-tracker/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async seedProductionData (file:///var/www/node-projects/infra-license-tracker/dist/index.js:710:26)
+  ❌ Error creating provider Google: Error: There was an error establishing an SSL connection
+    at /var/www/node-projects/infra-license-tracker/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///var/www/node-projects/infra-license-tracker/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async seedProductionData (file:///var/www/node-projects/infra-license-tracker/dist/index.js:710:26)
+  ❌ Error creating provider CDMon: Error: There was an error establishing an SSL connection
+    at /var/www/node-projects/infra-license-tracker/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///var/www/node-projects/infra-license-tracker/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async seedProductionData (file:///var/www/node-projects/infra-license-tracker/dist/index.js:710:26)
+  ❌ Error creating provider DNSmadeEasy: Error: There was an error establishing an SSL connection
+    at /var/www/node-projects/infra-license-tracker/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///var/www/node-projects/infra-license-tracker/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async seedProductionData (file:///var/www/node-projects/infra-license-tracker/dist/index.js:710:26)
+  ❌ Error creating provider Microsoft: Error: There was an error establishing an SSL connection
+    at /var/www/node-projects/infra-license-tracker/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///var/www/node-projects/infra-license-tracker/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async seedProductionData (file:///var/www/node-projects/infra-license-tracker/dist/index.js:710:26)
+  ❌ Error creating provider Atlassian: Error: There was an error establishing an SSL connection
+    at /var/www/node-projects/infra-license-tracker/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///var/www/node-projects/infra-license-tracker/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async seedProductionData (file:///var/www/node-projects/infra-license-tracker/dist/index.js:710:26)
+  ❌ Error creating provider Beanstalk: Error: There was an error establishing an SSL connection
+    at /var/www/node-projects/infra-license-tracker/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///var/www/node-projects/infra-license-tracker/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async seedProductionData (file:///var/www/node-projects/infra-license-tracker/dist/index.js:710:26)
+  ❌ Error creating provider Adobe: Error: There was an error establishing an SSL connection
+    at /var/www/node-projects/infra-license-tracker/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///var/www/node-projects/infra-license-tracker/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async seedProductionData (file:///var/www/node-projects/infra-license-tracker/dist/index.js:710:26)
+  ❌ Error creating provider Jetbrains: Error: There was an error establishing an SSL connection
+    at /var/www/node-projects/infra-license-tracker/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///var/www/node-projects/infra-license-tracker/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async seedProductionData (file:///var/www/node-projects/infra-license-tracker/dist/index.js:710:26)
+  ❌ Error creating provider OpenAI: Error: There was an error establishing an SSL connection
+    at /var/www/node-projects/infra-license-tracker/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///var/www/node-projects/infra-license-tracker/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async seedProductionData (file:///var/www/node-projects/infra-license-tracker/dist/index.js:710:26)
+  ❌ Error creating provider x.ai: Error: There was an error establishing an SSL connection
+    at /var/www/node-projects/infra-license-tracker/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///var/www/node-projects/infra-license-tracker/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async seedProductionData (file:///var/www/node-projects/infra-license-tracker/dist/index.js:710:26)
+  ❌ Error creating provider Firecrawl: Error: There was an error establishing an SSL connection
+    at /var/www/node-projects/infra-license-tracker/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///var/www/node-projects/infra-license-tracker/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async seedProductionData (file:///var/www/node-projects/infra-license-tracker/dist/index.js:710:26)
+  ❌ Error creating provider Tavily: Error: There was an error establishing an SSL connection
+    at /var/www/node-projects/infra-license-tracker/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///var/www/node-projects/infra-license-tracker/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async seedProductionData (file:///var/www/node-projects/infra-license-tracker/dist/index.js:710:26)
+  ❌ Error creating provider Mureka: Error: There was an error establishing an SSL connection
+    at /var/www/node-projects/infra-license-tracker/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///var/www/node-projects/infra-license-tracker/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async seedProductionData (file:///var/www/node-projects/infra-license-tracker/dist/index.js:710:26)
+  ❌ Error creating provider Black Forest: Error: There was an error establishing an SSL connection
+    at /var/www/node-projects/infra-license-tracker/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///var/www/node-projects/infra-license-tracker/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async seedProductionData (file:///var/www/node-projects/infra-license-tracker/dist/index.js:710:26)
+  ❌ Error creating provider Replit: Error: There was an error establishing an SSL connection
+    at /var/www/node-projects/infra-license-tracker/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///var/www/node-projects/infra-license-tracker/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async seedProductionData (file:///var/www/node-projects/infra-license-tracker/dist/index.js:710:26)
+  ❌ Error creating provider Vercel: Error: There was an error establishing an SSL connection
+    at /var/www/node-projects/infra-license-tracker/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///var/www/node-projects/infra-license-tracker/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async seedProductionData (file:///var/www/node-projects/infra-license-tracker/dist/index.js:710:26)
+  ❌ Error creating provider SerpAPI: Error: There was an error establishing an SSL connection
+    at /var/www/node-projects/infra-license-tracker/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///var/www/node-projects/infra-license-tracker/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async seedProductionData (file:///var/www/node-projects/infra-license-tracker/dist/index.js:710:26)
+  ❌ Error creating provider Figma: Error: There was an error establishing an SSL connection
+    at /var/www/node-projects/infra-license-tracker/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///var/www/node-projects/infra-license-tracker/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async seedProductionData (file:///var/www/node-projects/infra-license-tracker/dist/index.js:710:26)
+⚙️  Seeding services...
+  ❌ Missing provider or category for service: AWS - Infra Cloud
+  ❌ Missing provider or category for service: GCP - Infra Cloud
+  ❌ Missing provider or category for service: Compra Dominios
+  ❌ Missing provider or category for service: Proveedor DNS
+  ❌ Missing provider or category for service: Google Workspace Enterprise Edition
+  ❌ Missing provider or category for service: Office
+  ❌ Missing provider or category for service: Jira y Confluence
+  ❌ Missing provider or category for service: SVN & GIT
+  ❌ Missing provider or category for service: Adobe tools
+  ❌ Missing provider or category for service: PHPstorm
+  ❌ Missing provider or category for service: ChatGPT Staff Use
+  ❌ Missing provider or category for service: ChatGPT Contents
+  ❌ Missing provider or category for service: OpenAI API tools
+  ❌ Missing provider or category for service: Grok chat
+  ❌ Missing provider or category for service: Firecrawl - LLM web search
+  ❌ Missing provider or category for service: Tavily - LLM web search
+  ❌ Missing provider or category for service: Mureka AI - Audio creation (rouge)
+  ❌ Missing provider or category for service: Flux AI
+  ❌ Missing provider or category for service: Replit AI Vibe Coding
+  ❌ Missing provider or category for service: Vercel UX/UI AI Vibe Design
+  ❌ Missing provider or category for service: SerpAPI web search
+  ❌ Missing provider or category for service: Figma design
+🎉 Production data seeding completed successfully!
+💥 Error during seeding: Error: There was an error establishing an SSL connection
+    at /var/www/node-projects/infra-license-tracker/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///var/www/node-projects/infra-license-tracker/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async seedProductionData (file:///var/www/node-projects/infra-license-tracker/dist/index.js:750:27)
+💥 Seeding script failed: Error: There was an error establishing an SSL connection
+    at /var/www/node-projects/infra-license-tracker/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///var/www/node-projects/infra-license-tracker/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async seedProductionData (file:///var/www/node-projects/infra-license-tracker/dist/index.js:750:27)
