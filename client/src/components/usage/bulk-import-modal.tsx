@@ -95,7 +95,7 @@ export default function BulkImportModal({ isOpen, onClose }: BulkImportModalProp
     const parsed: ParsedRecord[] = [];
 
     lines.forEach((line, index) => {
-      const parts = line.split('\t').map(part => part.trim());
+      const parts = line.split(',').map(part => part.trim());
       
       if (parts.length < 4) {
         parsed.push({
@@ -104,7 +104,7 @@ export default function BulkImportModal({ isOpen, onClose }: BulkImportModalProp
           currency: parts[2] || '',
           date: parts[3] || '',
           isValid: false,
-          errors: ['Line must have 4 tab-separated values: Service, Amount, Currency, Date']
+          errors: ['Line must have 4 comma-separated values: Service, Amount, Currency, Date']
         });
         return;
       }
@@ -193,14 +193,14 @@ export default function BulkImportModal({ isOpen, onClose }: BulkImportModalProp
           
           <div className="space-y-4">
             <div className="text-sm text-gray-600">
-              <p className="mb-2">Paste your data with the following format (tab-separated):</p>
+              <p className="mb-2">Paste your data with the following format (comma-separated):</p>
               <div className="bg-gray-50 p-3 rounded-md font-mono text-xs">
-                Service&nbsp;&nbsp;&nbsp;&nbsp;Amount&nbsp;&nbsp;&nbsp;&nbsp;Currency&nbsp;&nbsp;&nbsp;&nbsp;Date<br/>
-                OpenAI API&nbsp;&nbsp;&nbsp;&nbsp;100.00&nbsp;&nbsp;&nbsp;&nbsp;USD&nbsp;&nbsp;&nbsp;&nbsp;2025-07-01<br/>
-                Twilio SMS&nbsp;&nbsp;&nbsp;&nbsp;50.00&nbsp;&nbsp;&nbsp;&nbsp;USD&nbsp;&nbsp;&nbsp;&nbsp;2025-07-01
+                Service,Amount,Currency,Date<br/>
+                OpenAI API,100.00,USD,2025-07-01<br/>
+                Twilio SMS,50.00,USD,2025-07-01
               </div>
               <p className="mt-2 text-xs">
-                • Copy data from Excel/Google Sheets (preserves tabs)<br/>
+                • Copy data from Excel/Google Sheets or CSV files<br/>
                 • Service names will be matched with existing services<br/>
                 • Date format: YYYY-MM-DD
               </p>
@@ -212,9 +212,9 @@ export default function BulkImportModal({ isOpen, onClose }: BulkImportModalProp
                 id="bulkData"
                 value={rawData}
                 onChange={(e) => setRawData(e.target.value)}
-                placeholder="Service    Amount  Currency        Date
-OpenAI API      100.00  USD     2025-07-01
-Twilio SMS      50.00   USD     2025-07-01"
+                placeholder="Service,Amount,Currency,Date
+OpenAI API,100.00,USD,2025-07-01
+Twilio SMS,50.00,USD,2025-07-01"
                 rows={10}
                 className="mt-1 font-mono text-sm"
               />
