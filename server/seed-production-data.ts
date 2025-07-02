@@ -1,5 +1,6 @@
 // Direct database connection for seeding (bypassing env.ts to avoid .env.development override)
-import { Pool } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
 import { serviceCategory, provider, service } from '@shared/schema';
