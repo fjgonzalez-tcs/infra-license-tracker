@@ -128,6 +128,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Changelog
 
+- July 2, 2025: Production Deployment and Enhanced Features
+  - Added Usage Tracking bulk import functionality with CSV format support
+  - Enhanced License management with Provider-Service cascade selection
+  - Created comprehensive production deployment guide (DEPLOYMENT.md)
+  - Implemented provider field in license forms for better organization
+  - Added complete MySQL deployment documentation with PM2, Nginx, SSL setup
+  - Tested and verified all functionality with sample data
+
 - July 1, 2025: Database Schema Overhaul
   - Implemented new naming convention with "sis_costs_" prefix for all table names
   - Added mnemonic prefixes for all column names (e.g., "scsc_" for sis_costs_service_category)
