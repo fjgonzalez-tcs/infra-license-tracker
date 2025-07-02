@@ -87,20 +87,30 @@ export default function UsageCards() {
   };
 
   // Filter only usage services
-  const usageServices = services?.filter((service: any) => 
-    service.category?.name?.toLowerCase().includes('usage')
-  ) || [];
+  const usageServices = Array.isArray(services) 
+    ? services.filter((service: any) => 
+        service.category?.name?.toLowerCase().includes('usage')
+      ) 
+    : [];
 
   if (usageServices.length === 0) {
     return (
       <div className="mb-8">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex gap-3 mb-6">
           <Button 
             onClick={() => setIsTopupModalOpen(true)}
             className="bg-primary-500 hover:bg-primary-600"
           >
             <Plus className="h-4 w-4 mr-2" />
             Record Top-up
+          </Button>
+          <Button 
+            onClick={() => setIsBulkImportModalOpen(true)}
+            variant="outline"
+            className="border-primary-500 text-primary-600 hover:bg-primary-50"
+          >
+            <Upload className="h-4 w-4 mr-2" />
+            Bulk Import
           </Button>
         </div>
         
@@ -119,19 +129,31 @@ export default function UsageCards() {
           onClose={() => setIsTopupModalOpen(false)}
           selectedServiceId={selectedServiceId}
         />
+        <BulkImportModal 
+          isOpen={isBulkImportModalOpen}
+          onClose={() => setIsBulkImportModalOpen(false)}
+        />
       </div>
     );
   }
 
   return (
     <div className="mb-8">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex gap-3 mb-6">
         <Button 
           onClick={() => setIsTopupModalOpen(true)}
           className="bg-primary-500 hover:bg-primary-600"
         >
           <Plus className="h-4 w-4 mr-2" />
           Record Top-up
+        </Button>
+        <Button 
+          onClick={() => setIsBulkImportModalOpen(true)}
+          variant="outline"
+          className="border-primary-500 text-primary-600 hover:bg-primary-50"
+        >
+          <Upload className="h-4 w-4 mr-2" />
+          Bulk Import
         </Button>
       </div>
 
@@ -224,6 +246,11 @@ export default function UsageCards() {
           setSelectedServiceId(null);
         }}
         selectedServiceId={selectedServiceId}
+      />
+
+      <BulkImportModal 
+        isOpen={isBulkImportModalOpen}
+        onClose={() => setIsBulkImportModalOpen(false)}
       />
     </div>
   );

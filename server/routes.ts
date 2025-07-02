@@ -245,6 +245,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post('/api/usage/topups/bulk', async (req, res) => {
+    try {
+      const { records } = req.body;
+      
+      if (!Array.isArray(records) || records.length === 0) {
+        return res.status(400).json({ message: "Invalid records array" });
+      }
+
+      // Validate each record
+      const validatedRecords = records.map(record => {
+        return insertUsageTopupSchema.parse(record);
+      });
+
+      // Create all topups
+      const results = [];
+      for (const recordData of validatedRecords) {
+        const topup = await storage.createUsageTopup(recordData);
+        results.push(topup);
+      }
+
+      res.status(201).json({ 
+        message: `Successfully imported ${results.length} records`, 
+        records: results 
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid data", errors: error.errors });
+      } else {
+        console.error("Error creating bulk topups:", error);
+        res.status(500).json({ message: "Failed to create bulk topups" });
+      }
+    }
+  });
+
   app.get('/api/usage/consumption', async (req, res) => {
     try {
       const consumption = await storage.getUsageConsumption();
