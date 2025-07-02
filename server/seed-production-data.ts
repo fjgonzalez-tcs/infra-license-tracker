@@ -1,6 +1,6 @@
 // Direct database connection for seeding (bypassing env.ts to avoid .env.development override)
-import mysql from 'mysql2/promise';
-import { drizzle } from 'drizzle-orm/mysql2';
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
 import { serviceCategory, provider, service } from '@shared/schema';
 import { eq } from 'drizzle-orm';
@@ -10,8 +10,11 @@ if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL must be set. Did you forget to provision a database?");
 }
 
-const connection = mysql.createPool(process.env.DATABASE_URL);
-const db = drizzle({ client: connection, schema, mode: 'default' });
+const pool = new Pool({ 
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
+const db = drizzle({ client: pool, schema });
 
 // Production data structure based on your requirements
 const productionData = {
@@ -86,11 +89,10 @@ export async function seedProductionData() {
         const existing = await db.select().from(serviceCategory).where(eq(serviceCategory.name, cat.name)).limit(1);
         
         if (existing.length === 0) {
-          const result = await db.insert(serviceCategory)
-            .values({ name: cat.name, description: cat.description });
-          // Get the newly inserted category
-          const newCategory = await db.select().from(serviceCategory).where(eq(serviceCategory.name, cat.name)).limit(1);
-          categoryMap.set(cat.name, newCategory[0].id);
+          const [newCategory] = await db.insert(serviceCategory)
+            .values({ name: cat.name, description: cat.description })
+            .returning();
+          categoryMap.set(cat.name, newCategory.id);
           console.log(`  ✅ Created category: ${cat.name}`);
         } else {
           categoryMap.set(cat.name, existing[0].id);
@@ -111,11 +113,10 @@ export async function seedProductionData() {
         const existing = await db.select().from(provider).where(eq(provider.name, prov.name)).limit(1);
         
         if (existing.length === 0) {
-          const result = await db.insert(provider)
-            .values({ name: prov.name, website: prov.website });
-          // Get the newly inserted provider
-          const newProvider = await db.select().from(provider).where(eq(provider.name, prov.name)).limit(1);
-          providerMap.set(prov.name, newProvider[0].id);
+          const [newProvider] = await db.insert(provider)
+            .values({ name: prov.name, website: prov.website })
+            .returning();
+          providerMap.set(prov.name, newProvider.id);
           console.log(`  ✅ Created provider: ${prov.name}`);
         } else {
           providerMap.set(prov.name, existing[0].id);
