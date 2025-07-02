@@ -5,9 +5,10 @@
 CostWatch is a unified dashboard application for tracking infrastructure, license, and usage-based service costs. It provides comprehensive visibility into technology spending across different service categories including cloud infrastructure, software licenses, and usage-based services.
 
 **Latest Updates:**
-- Dashboard now includes widget visibility controls - users can show/hide different sections
-- Authentication system removed for intranet deployment
-- MySQL deployment scripts created for production environments
+- Usage Tracking bulk import functionality with CSV support
+- License management enhanced with Provider-Service cascade selection
+- Complete production deployment documentation for MySQL servers
+- Comprehensive MySQL schema with enterprise naming conventions
 
 ## System Architecture
 
@@ -109,10 +110,12 @@ The application follows a modern full-stack architecture with the following comp
 
 ### Production Database Migration
 - **Development**: PostgreSQL (current setup)
-- **Production**: MySQL deployment support available
+- **Production**: MySQL deployment fully documented and tested
+- **Deployment Guide**: Complete production deployment guide in `DEPLOYMENT.md`
 - **Migration Script**: `mysql-deployment-scripts.sql` contains complete schema
 - **Features**: Full table structure, indexes, views, and sample data
 - **Compatibility**: Designed for MySQL 8.0+ with UTF8MB4 support
+- **Production Ready**: Includes PM2 process management, Nginx configuration, SSL setup
 
 ### Environment Configuration
 - **Database**: DATABASE_URL for PostgreSQL (dev) or MySQL (prod)
