@@ -1,46 +1,46 @@
 import {
-  pgTable,
+  mysqlTable,
   text,
   varchar,
   timestamp,
-  jsonb,
+  json,
   index,
   bigint,
   decimal,
   date,
-  integer,
+  int,
   boolean,
   char,
-} from "drizzle-orm/pg-core";
+} from "drizzle-orm/mysql-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // Session storage table - mandatory for Replit Auth
-export const sessions = pgTable(
+export const sessions = mysqlTable(
   "sessions",
   {
-    sid: varchar("sid").primaryKey(),
-    sess: jsonb("sess").notNull(),
+    sid: varchar("sid", { length: 128 }).primaryKey(),
+    sess: json("sess").notNull(),
     expire: timestamp("expire").notNull(),
   },
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
 // User storage table - mandatory for Replit Auth
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().notNull(),
-  email: varchar("email").unique(),
-  firstName: varchar("first_name"),
-  lastName: varchar("last_name"),
-  profileImageUrl: varchar("profile_image_url"),
+export const users = mysqlTable("users", {
+  id: varchar("id", { length: 255 }).primaryKey().notNull(),
+  email: varchar("email", { length: 255 }).unique(),
+  firstName: varchar("first_name", { length: 255 }),
+  lastName: varchar("last_name", { length: 255 }),
+  profileImageUrl: varchar("profile_image_url", { length: 500 }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Service category table - scsc (sis_costs_service_category)
-export const serviceCategory = pgTable("sis_costs_service_category", {
-  id: bigint("scsc_id", { mode: "number" }).primaryKey().generatedByDefaultAsIdentity(),
+export const serviceCategory = mysqlTable("sis_costs_service_category", {
+  id: bigint("scsc_id", { mode: "number" }).primaryKey().autoincrement(),
   name: varchar("scsc_name", { length: 64 }).unique().notNull(),
   description: text("scsc_description"),
   createdAt: timestamp("scsc_created_at").defaultNow(),
@@ -48,8 +48,8 @@ export const serviceCategory = pgTable("sis_costs_service_category", {
 });
 
 // Provider table - scp (sis_costs_provider)
-export const provider = pgTable("sis_costs_provider", {
-  id: bigint("scp_id", { mode: "number" }).primaryKey().generatedByDefaultAsIdentity(),
+export const provider = mysqlTable("sis_costs_provider", {
+  id: bigint("scp_id", { mode: "number" }).primaryKey().autoincrement(),
   name: varchar("scp_name", { length: 128 }).unique().notNull(),
   website: varchar("scp_website", { length: 255 }),
   createdAt: timestamp("scp_created_at").defaultNow(),
@@ -57,8 +57,8 @@ export const provider = pgTable("sis_costs_provider", {
 });
 
 // Service table - scs (sis_costs_service)
-export const service = pgTable("sis_costs_service", {
-  id: bigint("scs_id", { mode: "number" }).primaryKey().generatedByDefaultAsIdentity(),
+export const service = mysqlTable("sis_costs_service", {
+  id: bigint("scs_id", { mode: "number" }).primaryKey().autoincrement(),
   providerId: bigint("scs_provider_id", { mode: "number" }).notNull(),
   categoryId: bigint("scs_category_id", { mode: "number" }).notNull(),
   name: varchar("scs_name", { length: 128 }).notNull(),
@@ -69,8 +69,8 @@ export const service = pgTable("sis_costs_service", {
 });
 
 // Infrastructure invoice table - scii (sis_costs_infra_invoice)
-export const infraInvoice = pgTable("sis_costs_infra_invoice", {
-  id: bigint("scii_id", { mode: "number" }).primaryKey().generatedByDefaultAsIdentity(),
+export const infraInvoice = mysqlTable("sis_costs_infra_invoice", {
+  id: bigint("scii_id", { mode: "number" }).primaryKey().autoincrement(),
   serviceId: bigint("scii_service_id", { mode: "number" }).notNull(),
   invoiceMonth: date("scii_invoice_month").notNull(),
   amount: decimal("scii_amount", { precision: 12, scale: 2 }).notNull(),
@@ -80,11 +80,11 @@ export const infraInvoice = pgTable("sis_costs_infra_invoice", {
 });
 
 // License plan table - sclp (sis_costs_license_plan)
-export const licensePlan = pgTable("sis_costs_license_plan", {
-  id: bigint("sclp_id", { mode: "number" }).primaryKey().generatedByDefaultAsIdentity(),
+export const licensePlan = mysqlTable("sis_costs_license_plan", {
+  id: bigint("sclp_id", { mode: "number" }).primaryKey().autoincrement(),
   serviceId: bigint("sclp_service_id", { mode: "number" }).notNull(),
   monthlyUnitCost: decimal("sclp_monthly_unit_cost", { precision: 12, scale: 2 }).notNull(),
-  qty: integer("sclp_qty").notNull().default(1),
+  qty: int("sclp_qty").notNull().default(1),
   startMonth: date("sclp_start_month").notNull(),
   endMonth: date("sclp_end_month"),
   annualCommitmentEnd: date("sclp_annual_commitment_end"),
@@ -93,8 +93,8 @@ export const licensePlan = pgTable("sis_costs_license_plan", {
 });
 
 // Usage top-up table - scut (sis_costs_usage_topup)
-export const usageTopup = pgTable("sis_costs_usage_topup", {
-  id: bigint("scut_id", { mode: "number" }).primaryKey().generatedByDefaultAsIdentity(),
+export const usageTopup = mysqlTable("sis_costs_usage_topup", {
+  id: bigint("scut_id", { mode: "number" }).primaryKey().autoincrement(),
   serviceId: bigint("scut_service_id", { mode: "number" }).notNull(),
   topupDate: date("scut_topup_date").notNull(),
   amountPurchased: decimal("scut_amount_purchased", { precision: 12, scale: 2 }).notNull(),
@@ -104,8 +104,8 @@ export const usageTopup = pgTable("sis_costs_usage_topup", {
 });
 
 // Usage consumption table - scuc (sis_costs_usage_consumption)
-export const usageConsumption = pgTable("sis_costs_usage_consumption", {
-  id: bigint("scuc_id", { mode: "number" }).primaryKey().generatedByDefaultAsIdentity(),
+export const usageConsumption = mysqlTable("sis_costs_usage_consumption", {
+  id: bigint("scuc_id", { mode: "number" }).primaryKey().autoincrement(),
   serviceId: bigint("scuc_service_id", { mode: "number" }).notNull(),
   consumptionDate: date("scuc_consumption_date").notNull(),
   amountConsumed: decimal("scuc_amount_consumed", { precision: 12, scale: 2 }).notNull(),
@@ -114,15 +114,15 @@ export const usageConsumption = pgTable("sis_costs_usage_consumption", {
 });
 
 // Budget table - scb (sis_costs_budget)
-export const budget = pgTable("sis_costs_budget", {
-  id: bigint("scb_id", { mode: "number" }).primaryKey().generatedByDefaultAsIdentity(),
+export const budget = mysqlTable("sis_costs_budget", {
+  id: bigint("scb_id", { mode: "number" }).primaryKey().autoincrement(),
   name: varchar("scb_name", { length: 128 }).notNull(),
   categoryId: bigint("scb_category_id", { mode: "number" }),
   serviceId: bigint("scb_service_id", { mode: "number" }),
   budgetType: varchar("scb_budget_type", { length: 20 }).notNull().default("monthly"), // monthly, quarterly, yearly
   budgetAmount: decimal("scb_budget_amount", { precision: 12, scale: 2 }).notNull(),
   budgetPeriod: varchar("scb_budget_period", { length: 7 }).notNull(), // YYYY-MM format
-  alertThreshold: integer("scb_alert_threshold").default(80), // percentage
+  alertThreshold: int("scb_alert_threshold").default(80), // percentage
   isActive: boolean("scb_is_active").default(true),
   createdAt: timestamp("scb_created_at").defaultNow(),
   updatedAt: timestamp("scb_updated_at").defaultNow(),
