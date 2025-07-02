@@ -1,12 +1,9 @@
+// Load environment variables first, before any other imports
+import "./env";
+
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { config } from "dotenv";
-import path from "path";
-
-// Load environment variables based on NODE_ENV
-const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development';
-config({ path: path.resolve(process.cwd(), envFile) });
 
 const app = express();
 app.use(express.json());
@@ -62,10 +59,8 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
+  // Use PORT from environment or default based on NODE_ENV
+  const port = process.env.PORT ? parseInt(process.env.PORT) : (process.env.NODE_ENV === 'production' ? 3000 : 5000);
   server.listen({
     port,
     host: "0.0.0.0",
