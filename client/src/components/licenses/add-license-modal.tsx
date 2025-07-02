@@ -13,6 +13,7 @@ import { insertLicensePlanSchema } from "@shared/schema";
 import { z } from "zod";
 
 const formSchema = insertLicensePlanSchema.extend({
+  providerId: z.string().min(1, "Provider is required"),
   serviceId: z.string().min(1, "Service is required").transform(Number),
   monthlyUnitCost: z.string().min(1, "Unit cost is required").transform(Number),
   qty: z.string().min(1, "Quantity is required").transform(Number),
@@ -32,9 +33,14 @@ export default function AddLicenseModal({ isOpen, onClose }: AddLicenseModalProp
     queryKey: ["/api/services"],
   });
 
+  const { data: providers } = useQuery({
+    queryKey: ["/api/providers"],
+  });
+
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      providerId: "",
       serviceId: "",
       monthlyUnitCost: "",
       qty: "",
@@ -83,12 +89,31 @@ export default function AddLicenseModal({ isOpen, onClose }: AddLicenseModalProp
   });
 
   const onSubmit = (data: any) => {
-    createLicenseMutation.mutate(data);
+    // Remove providerId from data since it's not part of the schema
+    const { providerId, ...licenseData } = data;
+    createLicenseMutation.mutate(licenseData);
   };
 
-  const licenseServices = services?.filter((service: any) => 
-    service.category?.name?.toLowerCase().includes('license')
-  ) || [];
+  // Get all license services
+  const licenseServices = Array.isArray(services) 
+    ? services.filter((service: any) => 
+        service.category?.name?.toLowerCase().includes('license')
+      ) 
+    : [];
+
+  // Filter services by selected provider
+  const selectedProviderId = form.watch("providerId");
+  const filteredServices = selectedProviderId 
+    ? licenseServices.filter((service: any) => 
+        service.providerId?.toString() === selectedProviderId
+      )
+    : licenseServices;
+
+  // Reset service selection when provider changes
+  const handleProviderChange = (providerId: string) => {
+    form.setValue("providerId", providerId);
+    form.setValue("serviceId", ""); // Reset service when provider changes
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -98,18 +123,41 @@ export default function AddLicenseModal({ isOpen, onClose }: AddLicenseModalProp
         </DialogHeader>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div>
+            <Label htmlFor="providerId">Provider</Label>
+            <Select
+              value={form.watch("providerId")}
+              onValueChange={handleProviderChange}
+            >
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Select Provider" />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.isArray(providers) && providers.map((provider: any) => (
+                  <SelectItem key={provider.id} value={provider.id.toString()}>
+                    {provider.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {form.formState.errors.providerId && (
+              <p className="text-sm text-red-600 mt-1">{form.formState.errors.providerId.message}</p>
+            )}
+          </div>
+
+          <div>
             <Label htmlFor="serviceId">Service</Label>
             <Select
               value={form.watch("serviceId")}
               onValueChange={(value) => form.setValue("serviceId", value)}
+              disabled={!selectedProviderId}
             >
               <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Select Service" />
+                <SelectValue placeholder={selectedProviderId ? "Select Service" : "Select Provider First"} />
               </SelectTrigger>
               <SelectContent>
-                {licenseServices.map((service: any) => (
+                {filteredServices.map((service: any) => (
                   <SelectItem key={service.id} value={service.id.toString()}>
-                    {service.name} ({service.provider?.name})
+                    {service.name}
                   </SelectItem>
                 ))}
               </SelectContent>
