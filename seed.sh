@@ -6,8 +6,8 @@
 echo "🌱 Seeding CostWatch database with production data..."
 echo "---------------------------------------------------"
 
-# Run the seeding script
-NODE_ENV=development tsx server/seed-production-data.ts
+# Run the seeding script using npx tsx
+NODE_ENV=development npx tsx server/seed-production-data.ts
 
 echo ""
 echo "✅ Database seeding completed!"
