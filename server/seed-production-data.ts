@@ -1,6 +1,21 @@
-import { db } from './db';
+// Direct database connection for seeding (bypassing env.ts to avoid .env.development override)
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import ws from "ws";
+import * as schema from "@shared/schema";
 import { serviceCategory, provider, service } from '@shared/schema';
 import { eq } from 'drizzle-orm';
+
+// Configure Neon for serverless
+neonConfig.webSocketConstructor = ws;
+
+// Use the actual DATABASE_URL environment variable (not from .env.development)
+if (!process.env.DATABASE_URL) {
+  throw new Error("DATABASE_URL must be set. Did you forget to provision a database?");
+}
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const db = drizzle({ client: pool, schema });
 
 // Production data structure based on your requirements
 const productionData = {
