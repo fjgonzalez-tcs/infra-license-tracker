@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { seedProductionData } from "./seed-production-data";
 // Authentication removed for intranet deployment
 import {
   insertServiceCategorySchema,
@@ -14,6 +15,24 @@ import {
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Production data seeding endpoint
+  app.post('/api/seed-production-data', async (req, res) => {
+    try {
+      await seedProductionData();
+      res.json({ 
+        success: true, 
+        message: 'Production data seeded successfully' 
+      });
+    } catch (error) {
+      console.error("Error seeding production data:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to seed production data",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
   // Dashboard summary endpoint
   app.get('/api/summary', async (req, res) => {
     try {
